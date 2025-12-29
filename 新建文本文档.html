@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炫酷小组专属网页（修复版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "Montserrat", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf5 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* 导航栏样式（炫酷粘性导航） */
+        .nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 70px;
+            background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            padding: 0 30px;
+            font-size: 19px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: #3498db;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-item:hover::after {
+            width: 100%;
+        }
+
+        .nav-item.active {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .nav-item.active::after {
+            width: 100%;
+        }
+
+        /* 内容容器样式（渐变背景+立体阴影） */
+        .content {
+            width: 100%;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 标题通用样式 */
+        .page-title {
+            text-align: center;
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            border-radius: 2px;
+        }
+
+        /* 第一页：小组成员样式（炫酷卡片） */
+        .members-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .member-card {
+            background: linear-gradient(180deg, white 0%, #f9fbff 100%);
+            width: 320px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .member-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.05), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .member-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .member-card:hover::before {
+            left: 100%;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid transparent;
+            background: linear-gradient(45deg, #3498db, #2980b9, #2c3e50) border-box;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-wrapper:hover {
+            transform: rotate(5deg);
+            box-shadow: 0 6px 25px rgba(52, 152, 219, 0.4);
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .avatar-wrapper:hover .avatar {
+            transform: scale(1.05);
+        }
+
+        .avatar-tip {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 8px 0;
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        .avatar-wrapper:hover .avatar-tip {
+            opacity: 1;
+        }
+
+        .avatar-input {
+            display: none;
+        }
+
+        .member-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .member-name::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 2px;
+            background: #3498db;
+            border-radius: 1px;
+        }
+
+        .signature-wrapper {
+            margin-top: 15px;
+        }
+
+        .signature {
+            font-size: 17px;
+            color: #7f8c8d;
+            padding: 12px 15px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #eef2f7 100%);
+            min-height: 70px;
+            cursor: text;
+            outline: none;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .signature:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            color: #2c3e50;
+        }
+
+        .signature-edit-tip {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 第二页：音乐播放器样式（炫酷渐变播放器） */
+        .music-player {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            width: 100%;
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .music-cover {
+            width: 220px;
+            height: 220px;
+            border-radius: 16px;
+            object-fit: cover;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            border: 4px solid rgba(255,255,255,0.2);
+            transition: all 0.4s ease;
+        }
+
+        .music-player:hover .music-cover {
+            transform: rotate(360deg);
+        }
+
+        .music-info {
+            margin-bottom: 30px;
+        }
+
+        .music-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .music-singer {
+            font-size: 18px;
+            color: #b0c4de;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 25px 0;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-current {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #8e44ad);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s ease;
+            position: relative;
+        }
+
+        .progress-current::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .music-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .control-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(45deg, #2980b9, #1f618d);
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+
+        .control-btn.play-pause {
+            width: 70px;
+            height: 70px;
+            font-size: 24px;
+            background: linear-gradient(45deg, #8e44ad, #6c3483);
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.4);
+        }
+
+        .control-btn.play-pause:hover {
+            background: linear-gradient(45deg, #6c3483, #4a235a);
+            box-shadow: 0 6px 20px rgba(142, 68, 173, 0.6);
+        }
+
+        .music-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            color: #b0c4de;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 第三页：小游戏样式（炫酷游戏面板） */
+        .game-container {
+            background: linear-gradient(180deg, white 0%, #f9fbff 100%);
+            width: 100%;
+            max-width: 550px;
+            margin: 0 auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .game-container:hover {
+            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+        }
+
+        .game-title {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .game-desc {
+            font-size: 17px;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+        }
+
+        .game-input {
+            width: 220px;
+            height: 50px;
+            padding: 0 20px;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            font-size: 18px;
+            outline: none;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+            background: linear-gradient(180deg, #f8f9fa 0%, #eef2f7 100%);
+        }
+
+        .game-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .game-btn {
+            height: 50px;
+            padding: 0 25px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .game-btn:hover {
+            background: linear-gradient(90deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .game-result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 17px;
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .result-success {
+            background: linear-gradient(180deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 1px solid #b1dfbb;
+            box-shadow: 0 4px 15px rgba(21, 87, 36, 0.1);
+        }
+
+        .result-warning {
+            background: linear-gradient(180deg, #fff3cd 0%, #ffeeba 100%);
+            color: #856404;
+            border: 1px solid #ffe8a1;
+            box-shadow: 0 4px 15px rgba(133, 100, 4, 0.1);
+        }
+
+        .result-error {
+            background: linear-gradient(180deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+            box-shadow: 0 4px 15px rgba(114, 28, 36, 0.1);
+        }
+
+        .game-restart {
+            margin-top: 25px;
+            display: none;
+            background: linear-gradient(90deg, #8e44ad, #6c3483);
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.2);
+        }
+
+        .game-restart:hover {
+            background: linear-gradient(90deg, #6c3483, #4a235a);
+            box-shadow: 0 6px 20px rgba(142, 68, 173, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <div class="nav-item active" data-target="members-page">小组成员</div>
+        <div class="nav-item" data-target="music-page">音乐播放器</div>
+        <div class="nav-item" data-target="game-page">小游戏</div>
+    </div>
+
+    <!-- 第一页：小组成员 -->
+    <div class="content active" id="members-page">
+        <h2 class="page-title">我们的小组成员</h2>
+        <div class="members-container">
+            <!-- 王佳炜 -->
+            <div class="member-card">
+                <div class="avatar-wrapper">
+                    <img src="https://picsum.photos/300/300?random=1" alt="王佳炜头像" class="avatar" id="avatar1">
+                    <div class="avatar-tip">点击更换头像</div>
+                    <input type="file" class="avatar-input" id="avatarInput1" accept="image/*">
+                </div>
+                <div class="member-name">王佳炜</div>
+                <div class="signature-wrapper">
+                    <div class="signature" contenteditable="true" id="signature1">愿每一份努力，都有对应的收获 ✨</div>
+                    <div class="signature-edit-tip">点击可直接修改个性签名</div>
+                </div>
+            </div>
+
+            <!-- 林钦榕 -->
+            <div class="member-card">
+                <div class="avatar-wrapper">
+                    <img src="https://picsum.photos/300/300?random=2" alt="林钦榕头像" class="avatar" id="avatar2">
+                    <div class="avatar-tip">点击更换头像</div>
+                    <input type="file" class="avatar-input" id="avatarInput2" accept="image/*">
+                </div>
+                <div class="member-name">林钦榕</div>
+                <div class="signature-wrapper">
+                    <div class="signature" contenteditable="true" id="signature2">保持热爱，奔赴山海 🌊</div>
+                    <div class="signature-edit-tip">点击可直接修改个性签名</div>
+                </div>
+            </div>
+
+            <!-- 林方达 -->
+            <div class="member-card">
+                <div class="avatar-wrapper">
+                    <img src="https://picsum.photos/300/300?random=3" alt="林方达头像" class="avatar" id="avatar3">
+                    <div class="avatar-tip">点击更换头像</div>
+                    <input type="file" class="avatar-input" id="avatarInput3" accept="image/*">
+                </div>
+                <div class="member-name">林方达</div>
+                <div class="signature-wrapper">
+                    <div class="signature" contenteditable="true" id="signature3">心有光芒，何惧路长 ✨</div>
+                    <div class="signature-edit-tip">点击可直接修改个性签名</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第二页：音乐播放器 -->
+    <div class="content" id="music-page">
+        <h2 class="page-title">专属音乐播放器</h2>
+        <div class="music-player">
+            <img src="https://picsum.photos/400/400?random=10" alt="音乐封面" class="music-cover" id="musicCover">
+            <div class="music-info">
+                <div class="music-title" id="musicTitle">默认背景音乐</div>
+                <div class="music-singer" id="musicSinger">纯音乐</div>
+            </div>
+            <div class="music-time">
+                <span id="currentTime">00:00</span>
+                <span id="totalTime">00:00</span>
+            </div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-current" id="progressCurrent"></div>
+            </div>
+            <div class="music-controls">
+                <button class="control-btn" id="prevMusic">◀️</button>
+                <button class="control-btn play-pause" id="playPauseBtn">▶️</button>
+                <button class="control-btn" id="nextMusic">▶️▶️</button>
+            </div>
+            <!-- 音频元素（使用公共可访问音频，修复播放问题） -->
+            <audio id="audioPlayer" controls style="display: none;">
+                <source src="https://assets.mixkit.co/sfx/preview/mixkit-soft-piano-background-776.mp3" type="audio/mpeg">
+                你的浏览器不支持音频播放
+            </audio>
+        </div>
+    </div>
+
+    <!-- 第三页：小游戏（猜数字） -->
+    <div class="content" id="game-page">
+        <h2 class="page-title">猜数字小游戏</h2>
+        <div class="game-container">
+            <div class="game-title">猜数字（1-100）</div>
+            <div class="game-desc">系统已生成一个1到100之间的随机整数，你需要输入数字进行猜测，系统会提示你“大了”或“小了”，直到猜对为止！</div>
+            <input type="number" class="game-input" id="guessInput" placeholder="请输入1-100的数字" min="1" max="100">
+            <button class="game-btn" id="guessBtn">提交猜测</button>
+            <div class="game-result" id="gameResult"></div>
+            <button class="game-btn game-restart" id="restartBtn">重新开始游戏</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. 导航切换功能（保留原有炫酷效果，确保稳定）
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentPages = document.querySelectorAll('.content');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // 移除所有激活状态
+                navItems.forEach(nav => nav.classList.remove('active'));
+                contentPages.forEach(page => page.classList.remove('active'));
+
+                // 添加当前激活状态
+                item.classList.add('active');
+                const targetId = item.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // 2. 头像更换功能（保持原有交互）
+        const avatarWrappers = document.querySelectorAll('.avatar-wrapper');
+        avatarWrappers.forEach((wrapper, index) => {
+            const avatar = wrapper.querySelector('.avatar');
+            const avatarInput = wrapper.querySelector('.avatar-input');
+
+            wrapper.addEventListener('click', () => {
+                avatarInput.click();
+            });
+
+            avatarInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        avatar.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // 3. 音乐播放器功能（重点修复，确保播放正常）
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevMusicBtn = document.getElementById('prevMusicBtn');
+        const nextMusicBtn = document.getElementById('nextMusicBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressCurrent = document.getElementById('progressCurrent');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+
+        // 修复：使用公共可访问的纯音乐列表，避免跨域/版权问题
+        const musicList = [
+            {
+                title: "温柔钢琴背景",
+                singer: "纯音乐",
+                cover: "https://picsum.photos/400/400?random=10",
+                src: "https://assets.mixkit.co/sfx/preview/mixkit-soft-piano-background-776.mp3"
+            },
+            {
+                title: "轻快吉他旋律",
+                singer: "纯音乐",
+                cover: "https://picsum.photos/400/400?random=11",
+                src: "https://assets.mixkit.co/sfx/preview/mixkit-acoustic-guitar-soft-704.mp3"
+            },
+            {
+                title: "舒缓电子音效",
+                singer: "纯音乐",
+                cover: "https://picsum.photos/400/400?random=12",
+                src: "https://assets.mixkit.co/sfx/preview/mixkit-ambient-electronic-beat-233.mp3"
+            }
+        ];
+        let currentMusicIndex = 0;
+
+        // 初始化音乐信息（修复：确保加载完成后更新UI）
+        function initMusic(index) {
+            const music = musicList[index];
+            document.getElementById('musicTitle').textContent = music.title;
+            document.getElementById('musicSinger').textContent = music.singer;
+            document.getElementById('musicCover').src = music.cover;
+            audioPlayer.src = music.src;
+            
+            // 重置播放状态
+            playPauseBtn.textContent = "▶️";
+            progressCurrent.style.width = "0%";
+            currentTimeEl.textContent = "00:00";
+            totalTimeEl.textContent = "00:00";
+
+            // 音频加载完成后更新总时长
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                totalTimeEl.textContent = formatTime(audioPlayer.duration);
+            }, { once: true });
+        }
+
+        // 格式化时间（秒 -> 分:秒，修复：处理NaN异常）
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === Infinity) {
+                return "00:00";
+            }
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        }
+
+        // 播放/暂停切换（修复：增加状态判断，避免异常）
+        playPauseBtn.addEventListener('click', () => {
+            try {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    playPauseBtn.textContent = "⏸️";
+                } else {
+                    audioPlayer.pause();
+                    playPauseBtn.textContent = "▶️";
+                }
+            } catch (e) {
+                gameResult.textContent = "音频播放异常，请刷新页面重试";
+                gameResult.className = "game-result result-error";
+            }
+        });
+
+        // 上一曲（修复：循环逻辑优化）
+        prevMusicBtn.addEventListener('click', () => {
+            currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+            initMusic(currentMusicIndex);
+            // 自动播放
+            setTimeout(() => {
+                audioPlayer.play();
+                playPauseBtn.textContent = "⏸️";
+            }, 300);
+        });
+
+        // 下一曲（修复：循环逻辑优化）
+        nextMusicBtn.addEventListener('click', () => {
+            currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+            initMusic(currentMusicIndex);
+            // 自动播放
+            setTimeout(() => {
+                audioPlayer.play();
+                playPauseBtn.textContent = "⏸️";
+            }, 300);
+        });
+
+        // 更新播放进度（修复：实时更新，避免进度条不动）
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progressCurrent.style.width = `${isNaN(progress) ? 0 : progress}%`;
+            currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+            totalTimeEl.textContent = formatTime(audioPlayer.duration);
+
+            // 播放结束自动下一曲
+            if (audioPlayer.ended) {
+                currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+                initMusic(currentMusicIndex);
+                audioPlayer.play();
+                playPauseBtn.textContent = "⏸️";
+            }
+        });
+
+        // 点击进度条调整播放位置（修复：精准计算点击位置）
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const progress = (clickX / rect.width) * 100;
+            progressCurrent.style.width = `${progress}%`;
+            audioPlayer.currentTime = (progress / 100) * audioPlayer.duration;
+        });
+
+        // 初始化默认音乐
+        window.onload = function() {
+            initMusic(0);
+        };
+
+        // 4. 小游戏功能（重点修复，确保交互正常）
+        const guessInput = document.getElementById('guessInput');
+        const guessBtn = document.getElementById('guessBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const gameResult = document.getElementById('gameResult');
+        let randomNumber = Math.floor(Math.random() * 100) + 1; // 1-100随机数
+        let guessCount = 0;
+
+        // 提交猜测（修复：输入验证优化，避免NaN问题）
+        guessBtn.addEventListener('click', () => {
+            const inputValue = guessInput.value.trim();
+            const guessNum = parseInt(inputValue);
+            guessCount++;
+
+            // 严格验证输入
+            if (!inputValue || isNaN(guessNum) || guessNum < 1 || guessNum > 100) {
+                gameResult.textContent = "请输入1到100之间的有效整数！";
+                gameResult.className = "game-result result-error";
+                guessCount--; // 无效猜测不统计次数
+                return;
+            }
+
+            // 判断结果
+            if (guessNum < randomNumber) {
+                gameResult.textContent = `第${guessCount}次猜测：小了！再往大的猜～`;
+                gameResult.className = "game-result result-warning";
+            } else if (guessNum > randomNumber) {
+                gameResult.textContent = `第${guessCount}次猜测：大了！再往小的猜～`;
+                gameResult.className = "game-result result-warning";
+            } else {
+                gameResult.textContent = `恭喜你！第${guessCount}次猜测就猜对了！答案就是${randomNumber} 🎉`;
+                gameResult.className = "game-result result-success";
+                guessBtn.disabled = true;
+                guessInput.disabled = true;
+                restartBtn.style.display = "inline-block";
+            }
+
+            // 清空输入框
+            guessInput.value = "";
+        });
+
+        // 重新开始游戏（修复：重置所有状态）
+        restartBtn.addEventListener('click', () => {
+            randomNumber = Math.floor(Math.random() * 100) + 1;
+            guessCount = 0;
+            gameResult.textContent = "";
+            gameResult.className = "game-result";
+            guessInput.disabled = false;
+            guessBtn.disabled = false;
+            restartBtn.style.display = "none";
+            guessInput.value = "";
+            guessInput.focus(); // 自动聚焦输入框，提升体验
+        });
+
+        // 回车提交猜测（修复：仅在输入框激活时生效）
+        guessInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !guessInput.disabled) {
+                guessBtn.click();
+            }
+        });
+
+        // 初始化游戏输入框聚焦
+        guessInput.addEventListener('focus', () => {
+            guessInput.style.borderColor = "#3498db";
+        });
+        guessInput.addEventListener('blur', () => {
+            if (!guessInput.focused) {
+                guessInput.style.borderColor = "#e0e6ed";
+            }
+        });
+    </script>
+</body>
+</html>
